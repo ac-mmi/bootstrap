@@ -153,32 +153,42 @@ class Tab extends BaseComponent {
   }
 
   _keydown(event) {
-    const keys = this._parent.ariaOrientation === 'vertical' ?
-        [ARROW_LEFT_KEY, ARROW_RIGHT_KEY, ARROW_UP_KEY, ARROW_DOWN_KEY, HOME_KEY, END_KEY] :
-        [ARROW_LEFT_KEY, ARROW_RIGHT_KEY, HOME_KEY, END_KEY];
-  
-    if (!keys.includes(event.key)) {
-      return;
-    }
+      const keys = [
+          ARROW_LEFT_KEY, 
+          ARROW_RIGHT_KEY, 
+          ARROW_UP_KEY, 
+          ARROW_DOWN_KEY, 
+          HOME_KEY, 
+          END_KEY
+      ];
 
-    event.stopPropagation()// stopPropagation/preventDefault both added to support up/down keys without scrolling the page
-    event.preventDefault()
+      if (!keys.includes(event.key)) return;
 
-    const children = this._getChildren().filter(element => !isDisabled(element))
-    let nextActiveElement
+      // Prevent default behavior for navigation keys
+      if (
+          [ARROW_UP_KEY, ARROW_DOWN_KEY].includes(event.key) && 
+          this._parent.ariaOrientation === 'vertical'
+      ) {
+          event.stopPropagation();
+          event.preventDefault();
+      }
 
-    if ([HOME_KEY, END_KEY].includes(event.key)) {
-      nextActiveElement = children[event.key === HOME_KEY ? 0 : children.length - 1]
-    } else {
-      const isNext = [ARROW_RIGHT_KEY, ARROW_DOWN_KEY].includes(event.key)
-      nextActiveElement = getNextActiveElement(children, event.target, isNext, true)
-    }
+      const children = this._getChildren().filter(element => !isDisabled(element));
+      let nextActiveElement;
 
-    if (nextActiveElement) {
-      nextActiveElement.focus({ preventScroll: true })
-      Tab.getOrCreateInstance(nextActiveElement).show()
-    }
+      if ([HOME_KEY, END_KEY].includes(event.key)) {
+          nextActiveElement = children[event.key === HOME_KEY ? 0 : children.length - 1];
+      } else {
+          const isNext = [ARROW_RIGHT_KEY, ARROW_DOWN_KEY].includes(event.key);
+          nextActiveElement = getNextActiveElement(children, event.target, isNext, true);
+      }
+
+      if (nextActiveElement) {
+          nextActiveElement.focus({ preventScroll: true });
+          Tab.getOrCreateInstance(nextActiveElement).show();
+      }
   }
+
 
   _getChildren() { // collection of inner elements
     return SelectorEngine.find(SELECTOR_INNER_ELEM, this._parent)
